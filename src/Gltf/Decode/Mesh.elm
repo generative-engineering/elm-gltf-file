@@ -205,7 +205,7 @@ getIndices gltf bytes primitive =
             Err <| "No indice were found on this primitive"
 
 
-getColor : Raw.Gltf -> Raw.MeshPrimitive -> Result String Color
+getColor : Raw.Gltf -> Raw.MeshPrimitive -> Result String (Maybe Color)
 getColor gltf primitive =
     case primitive.material of
         Just materialIndex ->
@@ -213,7 +213,7 @@ getColor gltf primitive =
                 Just material ->
                     case material.pbrMetallicRoughness of
                         Just pbr ->
-                            Ok <| Color.fromRgba pbr.baseColorFactor
+                            Ok <| Just (Color.fromRgba pbr.baseColorFactor)
 
                         Nothing ->
                             Err <| "no PBR metallic roughness was found on material" ++ (material.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ " at index " ++ String.fromInt materialIndex
@@ -222,14 +222,14 @@ getColor gltf primitive =
                     Err <| "No material was found at index " ++ String.fromInt materialIndex ++ " (There are only " ++ String.fromInt (Array.length gltf.materials) ++ " materials)"
 
         Nothing ->
-            Err "No material was found on this primitive"
+            Ok Nothing
 
 
 type alias Primitive coordinates =
     { positions : List (Point3d Meters coordinates)
     , normals : List (Vector3d Unitless coordinates)
     , indices : List ( Int, Int, Int )
-    , color : Color
+    , color : Maybe Color
     }
 
 
@@ -250,7 +250,7 @@ getPrimitiveAttributes gltf bytes mesh primitiveIndex primitive =
         )
 
 
-toTriangularMesh : Raw.Gltf -> Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( TriangularMesh (Vertex coordinates), Color ))
+toTriangularMesh : Raw.Gltf -> Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( TriangularMesh (Vertex coordinates), Maybe Color ))
 toTriangularMesh gltf bytes ( mesh, modifier ) =
     List.indexedMap (getPrimitiveAttributes gltf bytes mesh) mesh.primitives
         |> List.map
@@ -293,7 +293,7 @@ skipBytes skip decoder =
     Bytes.Decode.bytes skip |> Bytes.Decode.andThen (\_ -> decoder)
 
 
-texturedFacesFromDefaultScene : Bytes -> Result String (List ( TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) }, Color ))
+texturedFacesFromDefaultScene : Bytes -> Result String (List ( TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) }, Maybe Color ))
 texturedFacesFromDefaultScene bytes =
     let
         decoder =
@@ -354,7 +354,7 @@ texturedFacesFromDefaultScene bytes =
             Err "The file is malformed"
 
 
-assembleDefaultScene : Raw.Gltf -> Bytes -> Result String (List ( TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) }, Color ))
+assembleDefaultScene : Raw.Gltf -> Bytes -> Result String (List ( TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) }, Maybe Color ))
 assembleDefaultScene gltf valuesBytes =
     case gltf.scene of
         Just sceneIndex ->
