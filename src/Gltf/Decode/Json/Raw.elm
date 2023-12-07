@@ -75,8 +75,8 @@ decoder =
         |> Json.Decode.Pipeline.optional "scenes" (Json.Decode.array sceneDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "skins" (Json.Decode.array skinDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "textures" (Json.Decode.array textureDecoder) Array.empty
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 accessorDecoder : Json.Decode.Decoder Accessor
@@ -92,8 +92,8 @@ accessorDecoder =
         |> Json.Decode.Pipeline.optional "min" (Json.Decode.nullable (Json.Decode.array Json.Decode.float)) Nothing
         |> Json.Decode.Pipeline.optional "sparse" (Json.Decode.nullable accessorSparseDecoder) Nothing
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 accessorComponentTypeDecoder : Json.Decode.Decoder AccessorComponentType
@@ -131,8 +131,8 @@ accessorSparseDecoder =
         |> Json.Decode.Pipeline.required "count" Json.Decode.int
         |> Json.Decode.Pipeline.required "indices" accessorSparseIndicesDecoder
         |> Json.Decode.Pipeline.required "values" accessorSparseValuesDecoder
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 accessorSparseIndicesDecoder : Json.Decode.Decoder AccessorSparseIndices
@@ -141,8 +141,8 @@ accessorSparseIndicesDecoder =
         |> Json.Decode.Pipeline.required "bufferView" Json.Decode.int
         |> Json.Decode.Pipeline.optional "byteOffset" Json.Decode.int 0
         |> Json.Decode.Pipeline.required "componentType" accessorSparseIndicesComponentTypeDecoder
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 accessorSparseIndicesComponentTypeDecoder : Json.Decode.Decoder AccessorSparseIndicesComponentType
@@ -170,8 +170,8 @@ accessorSparseValuesDecoder =
     Json.Decode.succeed AccessorSparseValues
         |> Json.Decode.Pipeline.required "bufferView" Json.Decode.int
         |> Json.Decode.Pipeline.optional "byteOffset" Json.Decode.int 0
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 accessorTypeDecoder : Json.Decode.Decoder AccessorType
@@ -212,8 +212,8 @@ animationDecoder =
         |> Json.Decode.Pipeline.required "channels" (Json.Decode.array animationChannelDecoder)
         |> Json.Decode.Pipeline.required "samplers" (Json.Decode.array animationSamplerDecoder)
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 animationChannelDecoder : Json.Decode.Decoder AnimationChannel
@@ -221,8 +221,8 @@ animationChannelDecoder =
     Json.Decode.succeed AnimationChannel
         |> Json.Decode.Pipeline.required "sampler" Json.Decode.int
         |> Json.Decode.Pipeline.required "target" animationChannelTargetDecoder
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 animationChannelTargetDecoder : Json.Decode.Decoder AnimationChannelTarget
@@ -230,8 +230,8 @@ animationChannelTargetDecoder =
     Json.Decode.succeed AnimationChannelTarget
         |> Json.Decode.Pipeline.optional "channels" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.required "path" animationChannelTargetPathDecoder
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 animationChannelTargetPathDecoder : Json.Decode.Decoder AnimationChannelTargetPath
@@ -263,8 +263,8 @@ animationSamplerDecoder =
         |> Json.Decode.Pipeline.required "input" Json.Decode.int
         |> Json.Decode.Pipeline.optional "interpolation" animationSamplerInterpolationDecoder Linear
         |> Json.Decode.Pipeline.required "output" Json.Decode.int
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 animationSamplerInterpolationDecoder : Json.Decode.Decoder AnimationSamplerInterpolation
@@ -294,8 +294,8 @@ assetDecoder =
         |> Json.Decode.Pipeline.optional "generator" (Json.Decode.nullable Json.Decode.string) Nothing
         |> Json.Decode.Pipeline.required "version" Json.Decode.string
         |> Json.Decode.Pipeline.optional "minVersion" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 bufferDecoder : Json.Decode.Decoder Buffer
@@ -304,8 +304,8 @@ bufferDecoder =
         |> Json.Decode.Pipeline.optional "uri" (Json.Decode.nullable Json.Decode.string) Nothing
         |> Json.Decode.Pipeline.required "byteLength" Json.Decode.int
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 bufferViewDecoder : Json.Decode.Decoder BufferView
@@ -317,8 +317,8 @@ bufferViewDecoder =
         |> Json.Decode.Pipeline.optional "byteStride" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "target" (Json.Decode.nullable bufferViewTargetDecoder) Nothing
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 bufferViewTargetDecoder : Json.Decode.Decoder BufferViewTarget
@@ -345,8 +345,8 @@ cameraDecoder =
         |> Json.Decode.Pipeline.optional "perspective" (Json.Decode.nullable cameraPerspectiveDecoder) Nothing
         |> Json.Decode.Pipeline.required "type" cameraTypeDecoder
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 cameraOrthographicDecoder : Json.Decode.Decoder CameraOrthographic
@@ -356,8 +356,8 @@ cameraOrthographicDecoder =
         |> Json.Decode.Pipeline.required "ymag" Json.Decode.float
         |> Json.Decode.Pipeline.required "zfar" Json.Decode.float
         |> Json.Decode.Pipeline.required "znear" Json.Decode.float
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 cameraPerspectiveDecoder : Json.Decode.Decoder CameraPerspective
@@ -367,8 +367,8 @@ cameraPerspectiveDecoder =
         |> Json.Decode.Pipeline.required "yfov" Json.Decode.float
         |> Json.Decode.Pipeline.optional "zfar" (Json.Decode.nullable Json.Decode.float) Nothing
         |> Json.Decode.Pipeline.required "znear" Json.Decode.float
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 cameraTypeDecoder : Json.Decode.Decoder CameraType
@@ -395,8 +395,8 @@ imageDecoder =
         |> Json.Decode.Pipeline.optional "mimeType" (Json.Decode.nullable imageMimeTypeDecoder) Nothing
         |> Json.Decode.Pipeline.optional "bufferView" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 imageMimeTypeDecoder : Json.Decode.Decoder ImageMimeType
@@ -420,8 +420,8 @@ materialDecoder : Json.Decode.Decoder Material
 materialDecoder =
     Json.Decode.succeed Material
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
         |> Json.Decode.Pipeline.optional "pbrMetallicRoughness" (Json.Decode.nullable materialPbrMetallicRoughnessDecoder) Nothing
         |> Json.Decode.Pipeline.optional "normalTexture" (Json.Decode.nullable materialNormalTextureInfoDecoder) Nothing
         |> Json.Decode.Pipeline.optional "occlusionTexture" (Json.Decode.nullable materialOcclusionTextureInfoDecoder) Nothing
@@ -440,8 +440,8 @@ materialPbrMetallicRoughnessDecoder =
         |> Json.Decode.Pipeline.optional "metallicFactor" Json.Decode.float 1
         |> Json.Decode.Pipeline.optional "roughnessFactor" Json.Decode.float 1
         |> Json.Decode.Pipeline.optional "metallicRoughnessTexture" (Json.Decode.nullable textureInfoDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 materialNormalTextureInfoDecoder : Json.Decode.Decoder MaterialNormalTextureInfo
@@ -450,8 +450,8 @@ materialNormalTextureInfoDecoder =
         |> Json.Decode.Pipeline.required "index" Json.Decode.int
         |> Json.Decode.Pipeline.optional "textCoord" Json.Decode.int 0
         |> Json.Decode.Pipeline.optional "scale" Json.Decode.float 1
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 materialOcclusionTextureInfoDecoder : Json.Decode.Decoder MaterialOcclusionTextureInfo
@@ -460,8 +460,8 @@ materialOcclusionTextureInfoDecoder =
         |> Json.Decode.Pipeline.required "index" Json.Decode.int
         |> Json.Decode.Pipeline.optional "textCoord" Json.Decode.int 0
         |> Json.Decode.Pipeline.optional "strength" Json.Decode.float 1
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 textureInfoDecoder : Json.Decode.Decoder TextureInfo
@@ -469,8 +469,8 @@ textureInfoDecoder =
     Json.Decode.succeed TextureInfo
         |> Json.Decode.Pipeline.required "index" Json.Decode.int
         |> Json.Decode.Pipeline.optional "textCoord" Json.Decode.int 0
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 materialAlphaModeDecoder : Json.Decode.Decoder MaterialAlphaMode
@@ -499,8 +499,8 @@ meshDecoder =
         |> Json.Decode.Pipeline.required "primitives" (Json.Decode.list meshPrimitiveDecoder)
         |> Json.Decode.Pipeline.optional "weights" (Json.Decode.array Json.Decode.float) Array.empty
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 meshPrimitiveDecoder : Json.Decode.Decoder MeshPrimitive
@@ -511,8 +511,8 @@ meshPrimitiveDecoder =
         |> Json.Decode.Pipeline.optional "material" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "mode" meshPrimitiveModeDecoder Triangles
         |> Json.Decode.Pipeline.optional "targets" (Json.Decode.array Json.Decode.int) Array.empty
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 meshPrimitiveAttributeDecoder : Json.Decode.Decoder MeshPrimitiveAttributes
@@ -617,8 +617,8 @@ nodeDecoder =
         |> Json.Decode.Pipeline.optional "mesh" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "weights" (Json.Decode.array Json.Decode.float) Array.empty
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 samplerDecoder : Json.Decode.Decoder Sampler
@@ -629,8 +629,8 @@ samplerDecoder =
         |> Json.Decode.Pipeline.optional "wrapS" samplerWrapDecoder Repeat
         |> Json.Decode.Pipeline.optional "wrapT" samplerWrapDecoder Repeat
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 samplerMagFilterDecoder : Json.Decode.Decoder SamplerMagFilter
@@ -704,8 +704,8 @@ sceneDecoder =
     Json.Decode.succeed Scene
         |> Json.Decode.Pipeline.optional "nodes" (Json.Decode.array Json.Decode.int) Array.empty
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 skinDecoder : Json.Decode.Decoder Skin
@@ -715,8 +715,8 @@ skinDecoder =
         |> Json.Decode.Pipeline.optional "skeleton" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.required "joints" (Json.Decode.array Json.Decode.int)
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
 textureDecoder : Json.Decode.Decoder Texture
@@ -725,17 +725,17 @@ textureDecoder =
         |> Json.Decode.Pipeline.optional "sampler" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "source" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "name" (Json.Decode.nullable Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionDecoder) Nothing
-        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extraDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
+        |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
 
-extensionDecoder : Json.Decode.Decoder Extension
-extensionDecoder =
+extensionsDecoder : Json.Decode.Decoder Extensions
+extensionsDecoder =
     Json.Decode.dict Json.Decode.value
 
 
-extraDecoder : Json.Decode.Decoder Extra
-extraDecoder =
+extrasDecoder : Json.Decode.Decoder Extras
+extrasDecoder =
     Json.Decode.value
 
 
@@ -758,8 +758,8 @@ type alias Gltf =
     , scenes : Array Scene -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_scenes
     , skins : Array Skin -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_skins
     , textures : Array Texture -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_textures
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_gltf_extras
     }
 
 
@@ -775,8 +775,8 @@ type alias Accessor =
     , min : Maybe (Array Float) -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_min
     , sparse : Maybe AccessorSparse -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_extras
     }
 
 
@@ -804,8 +804,8 @@ type alias AccessorSparse =
     { count : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_count
     , indices : AccessorSparseIndices -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices
     , values : AccessorSparseValues -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_extras
     }
 
 
@@ -814,8 +814,8 @@ type alias AccessorSparseIndices =
     { bufferView : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_bufferview
     , byteOffset : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_byteoffset
     , componentType : AccessorSparseIndicesComponentType -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_componenttype
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_indices_extras
     }
 
 
@@ -831,8 +831,8 @@ type alias AccessorSparseValues =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-accessor-sparse-values
     { bufferView : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values_bufferview
     , byteOffset : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values_byteoffset
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_sparse_values_extras
     }
 
 
@@ -841,8 +841,8 @@ type alias Animation =
     { channels : Array AnimationChannel -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channels
     , samplers : Array AnimationSampler -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_samplers
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_extras
     }
 
 
@@ -850,8 +850,8 @@ type alias AnimationChannel =
     --https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-animation-channel
     { sampler : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_sampler
     , target : AnimationChannelTarget -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_extras
     }
 
 
@@ -859,8 +859,8 @@ type alias AnimationChannelTarget =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-animation-channel-target
     { node : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target_node
     , path : AnimationChannelTargetPath -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target_path
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_channel_target_extras
     }
 
 
@@ -878,8 +878,8 @@ type alias AnimationSampler =
     { input : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_input
     , interpolation : AnimationSamplerInterpolation -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_interpolation
     , output : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_output
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_animation_sampler_extras
     }
 
 
@@ -897,8 +897,8 @@ type alias Asset =
     , generator : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_generator
     , version : String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_version
     , minVersion : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_minversion
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_asset_extras
     }
 
 
@@ -907,8 +907,8 @@ type alias Buffer =
     { uri : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_uri
     , byteLength : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_bytelength
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_buffer_extras
     }
 
 
@@ -920,8 +920,8 @@ type alias BufferView =
     , byteStride : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_bytestride
     , target : Maybe BufferViewTarget -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_target
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_extras
     }
 
 
@@ -938,8 +938,8 @@ type alias Camera =
     , perspective : Maybe CameraPerspective -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective
     , type_ : CameraType -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_type
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_extras
     }
 
 
@@ -956,8 +956,8 @@ type alias CameraOrthographic =
     , ymag : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_ymag
     , zfar : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_zfar
     , znear : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_znear
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_orthographic_extras
     }
 
 
@@ -967,17 +967,17 @@ type alias CameraPerspective =
     , yfov : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_yfov
     , zfar : Maybe Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_zfar
     , znear : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_znear
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_camera_perspective_extras
     }
 
 
-type alias Extension =
+type alias Extensions =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-extension
     Dict String Value
 
 
-type alias Extra =
+type alias Extras =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-extras
     Value
 
@@ -988,8 +988,8 @@ type alias Image =
     , mimeType : Maybe ImageMimeType -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_mimetype
     , bufferView : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_bufferview
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_image_extras
     }
 
 
@@ -1003,8 +1003,8 @@ type ImageMimeType
 type alias Material =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-material
     { name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_extras
     , pbrMetallicRoughness : Maybe MaterialPbrMetallicRoughness -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness
     , normalTexture : Maybe MaterialNormalTextureInfo -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltexture
     , occlusionTexture : Maybe MaterialOcclusionTextureInfo -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontexture
@@ -1029,8 +1029,8 @@ type alias MaterialNormalTextureInfo =
     { index : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_index
     , texCoord : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_texcoord
     , scale : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_scale
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_normaltextureinfo_extras
     }
 
 
@@ -1039,8 +1039,8 @@ type alias MaterialOcclusionTextureInfo =
     { index : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_index
     , texCoord : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_texcoord
     , strength : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_strength
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_occlusiontextureinfo_extras
     }
 
 
@@ -1051,8 +1051,8 @@ type alias MaterialPbrMetallicRoughness =
     , metallicFactor : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_metallicfactor
     , roughnessFactor : Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_roughnessfactor
     , metallicRoughnessTexture : Maybe TextureInfo -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_metallicroughnesstexture
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_extras
     }
 
 
@@ -1069,8 +1069,8 @@ type alias Mesh =
     { primitives : List MeshPrimitive -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitives
     , weights : Array Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_weights
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_extras
     }
 
 
@@ -1081,8 +1081,8 @@ type alias MeshPrimitive =
     , material : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_material
     , mode : MeshPrimitiveMode -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_mode
     , targets : Array Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_targets
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_mesh_primitive_extras
     }
 
 
@@ -1119,8 +1119,8 @@ type alias Node =
     , mesh : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_mesh
     , weights : Array Float -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_weights
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_node_extras
     }
 
 
@@ -1131,8 +1131,8 @@ type alias Sampler =
     , wrapS : SamplerWrap -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_wraps
     , wrapT : SamplerWrap -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_wrapt
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_sampler_extras
     }
 
 
@@ -1166,8 +1166,8 @@ type alias Scene =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-scene
     { nodes : Array Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_scene_nodes
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_scene_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_scene_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_scene_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_scene_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_scene_extras
     }
 
 
@@ -1177,8 +1177,8 @@ type alias Skin =
     , skeleton : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_skeleton
     , joints : Array Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_joints
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_skin_extras
     }
 
 
@@ -1187,8 +1187,8 @@ type alias Texture =
     { sampler : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_sampler
     , source : Maybe Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_source
     , name : Maybe String -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_name
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_texture_extras
     }
 
 
@@ -1196,6 +1196,6 @@ type alias TextureInfo =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-textureinfo
     { index : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_textureinfo_index
     , texCoord : Int -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_textureinfo_texcoord
-    , extensions : Maybe Extension -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_textureinfo_extensions
-    , extras : Maybe Extra -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_textureinfo_extras
+    , extensions : Maybe Extensions -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_textureinfo_extensions
+    , extras : Maybe Extras -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_textureinfo_extras
     }
