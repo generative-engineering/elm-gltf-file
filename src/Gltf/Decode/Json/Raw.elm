@@ -67,7 +67,7 @@ decoder =
         |> Json.Decode.Pipeline.optional "cameras" (Json.Decode.array cameraDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "images" (Json.Decode.array imageDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "materials" (Json.Decode.array materialDecoder) Array.empty
-        |> Json.Decode.Pipeline.optional "meshes" (Json.Decode.array mesheDecoder) Array.empty
+        |> Json.Decode.Pipeline.optional "meshes" (Json.Decode.array meshDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "nodes" (Json.Decode.array nodeDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "samplers" (Json.Decode.array samplerDecoder) Array.empty
         |> Json.Decode.Pipeline.optional "scene" (Json.Decode.nullable Json.Decode.int) Nothing
@@ -492,8 +492,8 @@ materialAlphaModeDecoder =
             )
 
 
-mesheDecoder : Json.Decode.Decoder Mesh
-mesheDecoder =
+meshDecoder : Json.Decode.Decoder Mesh
+meshDecoder =
     Json.Decode.succeed Mesh
         |> Json.Decode.Pipeline.required "primitives" (Json.Decode.list meshPrimitiveDecoder)
         |> Json.Decode.Pipeline.optional "weights" (Json.Decode.array Json.Decode.float) Array.empty
