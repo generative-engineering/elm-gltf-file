@@ -60,10 +60,10 @@ getMeshes gltf node =
                 Nothing ->
                     Err <| "There is no mesh at index " ++ String.fromInt meshIndex ++ ", as the mesh array is only " ++ (String.fromInt <| Array.length gltf.meshes) ++ " items long"
 
-        ( _, [] ) ->
+        ( Nothing, [] ) ->
             Err <| "The node " ++ (node.name |> Maybe.map (\name -> name ++ " ") |> Maybe.withDefault "") ++ "has no mesh and no children"
 
-        ( _, children ) ->
+        ( Nothing, children ) ->
             children
                 |> List.map (getNode gltf)
                 |> List.map (Result.andThen <| getMeshes gltf)
