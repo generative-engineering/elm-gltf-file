@@ -2,7 +2,8 @@ module Gltf.Decode.Json.Raw exposing (..)
 
 import Array exposing (Array)
 import Bytes
-import Json.Decode
+import Dict exposing (Dict)
+import Json.Decode exposing (Value)
 import Json.Decode.Pipeline
 import Math.Matrix4 exposing (Mat4)
 import Math.Vector3
@@ -730,12 +731,12 @@ textureDecoder =
 
 extensionDecoder : Json.Decode.Decoder Extension
 extensionDecoder =
-    Json.Decode.succeed Extension
+    Json.Decode.dict Json.Decode.value
 
 
 extraDecoder : Json.Decode.Decoder Extra
 extraDecoder =
-    Json.Decode.succeed Extra
+    Json.Decode.value
 
 
 type alias Gltf =
@@ -973,12 +974,12 @@ type alias CameraPerspective =
 
 type alias Extension =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-extension
-    {}
+    Dict String Value
 
 
 type alias Extra =
     -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-extras
-    {}
+    Value
 
 
 type alias Image =
