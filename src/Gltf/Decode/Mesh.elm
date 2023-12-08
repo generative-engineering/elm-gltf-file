@@ -65,7 +65,7 @@ getMeshes gltf node =
             node.children
                 |> List.map (getNode gltf)
                 |> List.map (Result.andThen <| getMeshes gltf)
-                |> List.map (Result.map (List.map <| \( mesh, modifier ) -> ( mesh, Math.Matrix4.mul modifier node.matrix )))
+                |> List.map (Result.map (List.map <| \( childMesh, childMatrix ) -> ( childMesh, Math.Matrix4.mul node.matrix childMatrix )))
                 |> resultFromList
                 |> Result.map List.concat
     in
