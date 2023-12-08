@@ -328,7 +328,7 @@ texturedFacesFromDefaultScene bytes =
                 |> Bytes.Decode.andThen
                     (\json ->
                         case Json.Decode.decodeString Raw.decoder json of
-                            Ok mesh ->
+                            Ok gltf ->
                                 Bytes.Decode.unsignedInt32 Bytes.LE
                                     |> Bytes.Decode.andThen
                                         (\length ->
@@ -339,7 +339,7 @@ texturedFacesFromDefaultScene bytes =
                                         (\length ->
                                             Bytes.Decode.bytes length
                                         )
-                                    |> Bytes.Decode.andThen (\b -> Bytes.Decode.succeed ( mesh, b ))
+                                    |> Bytes.Decode.andThen (\b -> Bytes.Decode.succeed ( gltf, b ))
 
                             Err _ ->
                                 Bytes.Decode.fail
