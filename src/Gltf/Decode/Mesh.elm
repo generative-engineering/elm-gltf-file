@@ -51,25 +51,35 @@ getNode gltf nodeIndex =
 
 getMeshes : Raw.Gltf -> Raw.Node -> Result String (List ( Raw.Mesh, Mat4 ))
 getMeshes gltf node =
-    case ( node.mesh, node.children ) of
-        ( Just meshIndex, _ ) ->
-            case Array.get meshIndex gltf.meshes of
-                Just mesh ->
-                    Ok [ ( mesh, node.matrix ) ]
+    let
+        nodeMesh =
+            case node.mesh of
+                Just meshIndex ->
+                    getMesh gltf meshIndex
+                        |> Result.map (\mesh -> [ ( mesh, node.matrix ) ])
 
                 Nothing ->
-                    Err <| "There is no mesh at index " ++ String.fromInt meshIndex ++ ", as the mesh array is only " ++ (String.fromInt <| Array.length gltf.meshes) ++ " items long"
+                    Ok []
 
-        ( Nothing, [] ) ->
-            Err <| "The node " ++ (node.name |> Maybe.map (\name -> name ++ " ") |> Maybe.withDefault "") ++ "has no mesh and no children"
-
-        ( Nothing, children ) ->
-            children
+        childMeshes =
+            node.children
                 |> List.map (getNode gltf)
                 |> List.map (Result.andThen <| getMeshes gltf)
                 |> List.map (Result.map (List.map <| \( mesh, modifier ) -> ( mesh, Math.Matrix4.mul modifier node.matrix )))
                 |> resultFromList
                 |> Result.map List.concat
+    in
+    Result.map2 (++) nodeMesh childMeshes
+
+
+getMesh : Raw.Gltf -> Int -> Result String Raw.Mesh
+getMesh gltf meshIndex =
+    case Array.get meshIndex gltf.meshes of
+        Just mesh ->
+            Ok mesh
+
+        Nothing ->
+            Err <| "There is no mesh at index " ++ String.fromInt meshIndex ++ ", as the mesh array is only " ++ (String.fromInt <| Array.length gltf.meshes) ++ " items long"
 
 
 mapAccessor : (Raw.Accessor -> Result String (Bytes.Decode.Decoder a)) -> Raw.Gltf -> Bytes -> Int -> Result String a
