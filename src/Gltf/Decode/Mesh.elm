@@ -212,7 +212,7 @@ getIndices gltf bytes primitive =
             getIntVec3 gltf bytes indicesIndex
 
         Nothing ->
-            Err <| "No indice were found on this primitive"
+            Err <| "No indices were found on this primitive"
 
 
 getColor : Raw.Gltf -> Raw.MeshPrimitive -> Result String (Maybe Color)
