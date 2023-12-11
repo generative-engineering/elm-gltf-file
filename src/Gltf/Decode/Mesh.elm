@@ -1,6 +1,6 @@
 module Gltf.Decode.Mesh exposing (Mesh(..), assembleDefaultScene, meshesFromDefaultScene)
 
-import Array
+import Array exposing (Array)
 import Bytes exposing (Bytes)
 import Bytes.Decode
 import Color exposing (Color)
@@ -68,8 +68,8 @@ getMesh gltf meshIndex =
             Err <| "There is no mesh at index " ++ String.fromInt meshIndex ++ ", as the mesh array is only " ++ (String.fromInt <| Array.length gltf.meshes) ++ " items long"
 
 
-mapAccessor : (Raw.Accessor -> Result String (Bytes.Decode.Decoder a)) -> Raw.Gltf -> Bytes -> Int -> Result String a
-mapAccessor decoderConstructor gltf bytes accessorIndex =
+mapAccessor : (Raw.Accessor -> Result String (Bytes.Decode.Decoder a)) -> Raw.Gltf -> Array Bytes -> Int -> Result String a
+mapAccessor decoderConstructor gltf buffers accessorIndex =
     case Array.get accessorIndex gltf.accessors of
         Just accessor ->
             Result.andThen
@@ -78,21 +78,26 @@ mapAccessor decoderConstructor gltf bytes accessorIndex =
                         Just bufferViewIndex ->
                             case Array.get bufferViewIndex gltf.bufferViews of
                                 Just bufferView ->
-                                    let
-                                        raw =
-                                            Bytes.Decode.decode
-                                                (skipBytes
-                                                    (accessor.byteOffset + bufferView.byteOffset)
-                                                    decoder
-                                                )
-                                                bytes
-                                    in
-                                    case raw of
-                                        Just result ->
-                                            Ok result
+                                    case Array.get bufferView.buffer buffers of
+                                        Just bytes ->
+                                            let
+                                                raw =
+                                                    Bytes.Decode.decode
+                                                        (skipBytes
+                                                            (accessor.byteOffset + bufferView.byteOffset)
+                                                            decoder
+                                                        )
+                                                        bytes
+                                            in
+                                            case raw of
+                                                Just result ->
+                                                    Ok result
+
+                                                Nothing ->
+                                                    Err <| "Could not fetch accessor " ++ String.fromInt accessorIndex ++ " VEC3 data"
 
                                         Nothing ->
-                                            Err <| "Could not fetch accessor " ++ String.fromInt accessorIndex ++ " VEC3 data"
+                                            Err <| "There is no buffer at index " ++ String.fromInt bufferView.buffer ++ ", as the buffer array is only " ++ (String.fromInt <| Array.length buffers) ++ " items long"
 
                                 Nothing ->
                                     Err <| "There is no buffer view at index " ++ String.fromInt bufferViewIndex ++ ", as the buffer view array is only " ++ (String.fromInt <| Array.length gltf.bufferViews) ++ " items long"
@@ -124,7 +129,7 @@ loop increment decoder count =
         )
 
 
-getFloatVec3 : Raw.Gltf -> Bytes -> Int -> Result String (List ( Float, Float, Float ))
+getFloatVec3 : Raw.Gltf -> Array Bytes -> Int -> Result String (List ( Float, Float, Float ))
 getFloatVec3 =
     mapAccessor
         (\accessor ->
@@ -145,7 +150,7 @@ getFloatVec3 =
         )
 
 
-getIntVec3 : Raw.Gltf -> Bytes -> Int -> Result String (List ( Int, Int, Int ))
+getIntVec3 : Raw.Gltf -> Array Bytes -> Int -> Result String (List ( Int, Int, Int ))
 getIntVec3 =
     mapAccessor
         (\accessor ->
@@ -169,33 +174,33 @@ getIntVec3 =
         )
 
 
-getPositions : Raw.Gltf -> Bytes -> Raw.MeshPrimitive -> Result String (List (Point3d Meters coordinates))
-getPositions gltf bytes primitive =
+getPositions : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (List (Point3d Meters coordinates))
+getPositions gltf buffers primitive =
     case primitive.attributes.position of
         Just positionIndex ->
-            getFloatVec3 gltf bytes positionIndex
+            getFloatVec3 gltf buffers positionIndex
                 |> Result.map (List.map (\( x, y, z ) -> Point3d.meters x y z))
 
         Nothing ->
             Err <| "No positions were found on this primitive"
 
 
-getNormals : Raw.Gltf -> Bytes -> Raw.MeshPrimitive -> Result String (Maybe (List (Vector3d Unitless coordinates)))
-getNormals gltf bytes primitive =
+getNormals : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (Maybe (List (Vector3d Unitless coordinates)))
+getNormals gltf buffers primitive =
     case primitive.attributes.normal of
         Just normalIndex ->
-            getFloatVec3 gltf bytes normalIndex
+            getFloatVec3 gltf buffers normalIndex
                 |> Result.map (Just << List.map (\( x, y, z ) -> Vector3d.unitless x y z))
 
         Nothing ->
             Ok Nothing
 
 
-getIndices : Raw.Gltf -> Bytes -> Raw.MeshPrimitive -> Result String (List ( Int, Int, Int ))
-getIndices gltf bytes primitive =
+getIndices : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (List ( Int, Int, Int ))
+getIndices gltf buffers primitive =
     case primitive.indices of
         Just indicesIndex ->
-            getIntVec3 gltf bytes indicesIndex
+            getIntVec3 gltf buffers indicesIndex
 
         Nothing ->
             Err <| "No indices were found on this primitive"
@@ -229,16 +234,16 @@ type alias Primitives coordinates =
     }
 
 
-getPrimitiveAttributes : Raw.Gltf -> Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (Primitives coordinates)
-getPrimitiveAttributes gltf bytes mesh primitiveIndex primitive =
+getPrimitiveAttributes : Raw.Gltf -> Array Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (Primitives coordinates)
+getPrimitiveAttributes gltf buffers mesh primitiveIndex primitive =
     Result.map4 Primitives
-        (getPositions gltf bytes primitive
+        (getPositions gltf buffers primitive
             |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no positions")
         )
-        (getNormals gltf bytes primitive
+        (getNormals gltf buffers primitive
             |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no normals")
         )
-        (getIndices gltf bytes primitive
+        (getIndices gltf buffers primitive
             |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no indices")
         )
         (getColor gltf primitive
@@ -278,7 +283,7 @@ toMesh transformation primitives =
     )
 
 
-toMeshes : Raw.Gltf -> Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( Mesh coordinates, Maybe Color ))
+toMeshes : Raw.Gltf -> Array Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( Mesh coordinates, Maybe Color ))
 toMeshes gltf buffers ( mesh, transformation ) =
     List.indexedMap (getPrimitiveAttributes gltf buffers mesh) mesh.primitives
         |> List.map (Result.map (toMesh transformation))
@@ -336,7 +341,7 @@ meshesFromDefaultScene bytes =
                                         (\length ->
                                             Bytes.Decode.bytes length
                                         )
-                                    |> Bytes.Decode.andThen (\b -> Bytes.Decode.succeed ( gltf, b ))
+                                    |> Bytes.Decode.andThen (\b -> Bytes.Decode.succeed ( gltf, Array.fromList [ b ] ))
 
                             Err _ ->
                                 Bytes.Decode.fail
@@ -344,15 +349,15 @@ meshesFromDefaultScene bytes =
                 |> Bytes.Decode.decode
     in
     case decoder bytes of
-        Just ( gltf, valuesBytes ) ->
-            assembleDefaultScene gltf valuesBytes
+        Just ( gltf, buffers ) ->
+            assembleDefaultScene gltf buffers
 
         Nothing ->
             Err "The file is malformed"
 
 
-assembleDefaultScene : Raw.Gltf -> Bytes -> Result String (List ( Mesh coordinates, Maybe Color ))
-assembleDefaultScene gltf valuesBytes =
+assembleDefaultScene : Raw.Gltf -> Array Bytes -> Result String (List ( Mesh coordinates, Maybe Color ))
+assembleDefaultScene gltf buffers =
     case gltf.scene of
         Just sceneIndex ->
             case Array.get sceneIndex gltf.scenes of
@@ -361,7 +366,7 @@ assembleDefaultScene gltf valuesBytes =
                         |> Array.toList
                         |> List.map (getNode gltf)
                         |> List.map (Result.andThen (getMeshes gltf))
-                        |> List.map (Result.andThen (\meshes -> meshes |> List.map (toMeshes gltf valuesBytes) |> Result.Extra.combine))
+                        |> List.map (Result.andThen (\meshes -> meshes |> List.map (toMeshes gltf buffers) |> Result.Extra.combine))
                         |> List.map (Result.map List.concat)
                         |> Result.Extra.combine
                         |> Result.map List.concat
