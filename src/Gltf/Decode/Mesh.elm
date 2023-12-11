@@ -1,4 +1,4 @@
-module Gltf.Decode.Mesh exposing (assembleDefaultScene, texturedFacesFromDefaultScene)
+module Gltf.Decode.Mesh exposing (Mesh(..), assembleDefaultScene, meshesFromDefaultScene)
 
 import Array
 import Bytes exposing (Bytes)
@@ -180,15 +180,15 @@ getPositions gltf bytes primitive =
             Err <| "No positions were found on this primitive"
 
 
-getNormals : Raw.Gltf -> Bytes -> Raw.MeshPrimitive -> Result String (List (Vector3d Unitless coordinates))
+getNormals : Raw.Gltf -> Bytes -> Raw.MeshPrimitive -> Result String (Maybe (List (Vector3d Unitless coordinates)))
 getNormals gltf bytes primitive =
     case primitive.attributes.normal of
         Just normalIndex ->
             getFloatVec3 gltf bytes normalIndex
-                |> Result.map (List.map (\( x, y, z ) -> Vector3d.unitless x y z))
+                |> Result.map (Just << List.map (\( x, y, z ) -> Vector3d.unitless x y z))
 
         Nothing ->
-            Err <| "No normals were found on this primitive"
+            Ok Nothing
 
 
 getIndices : Raw.Gltf -> Bytes -> Raw.MeshPrimitive -> Result String (List ( Int, Int, Int ))
@@ -221,17 +221,17 @@ getColor gltf primitive =
             Ok Nothing
 
 
-type alias Primitive coordinates =
+type alias Primitives coordinates =
     { positions : List (Point3d Meters coordinates)
-    , normals : List (Vector3d Unitless coordinates)
+    , normals : Maybe (List (Vector3d Unitless coordinates))
     , indices : List ( Int, Int, Int )
     , color : Maybe Color
     }
 
 
-getPrimitiveAttributes : Raw.Gltf -> Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (Primitive coordinates)
+getPrimitiveAttributes : Raw.Gltf -> Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (Primitives coordinates)
 getPrimitiveAttributes gltf bytes mesh primitiveIndex primitive =
-    Result.map4 Primitive
+    Result.map4 Primitives
         (getPositions gltf bytes primitive
             |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no positions")
         )
@@ -246,29 +246,42 @@ getPrimitiveAttributes gltf bytes mesh primitiveIndex primitive =
         )
 
 
-toTriangularMesh : Raw.Gltf -> Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( TriangularMesh (Vertex coordinates), Maybe Color ))
-toTriangularMesh gltf bytes ( mesh, modifier ) =
-    List.indexedMap (getPrimitiveAttributes gltf bytes mesh) mesh.primitives
-        |> List.map
-            (Result.map
-                (\{ positions, normals, indices, color } ->
-                    ( TriangularMesh.indexed
-                        (List.map2
-                            (\position normal ->
-                                { position = Point3d.transformBy modifier position
-                                , normal = Vector3d.transformBy modifier normal
-                                , uv = ( 0, 0 )
-                                }
-                            )
-                            positions
-                            normals
-                            |> Array.fromList
+type Mesh coordinates
+    = Triangles (TriangularMesh (Point3d Meters coordinates))
+    | Faces (TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates })
+
+
+toMesh : Mat4 -> Primitives coordinates -> ( Mesh coordinates, Maybe Color )
+toMesh transformation primitives =
+    let
+        triangularMesh vertexList =
+            TriangularMesh.indexed (Array.fromList vertexList) primitives.indices
+    in
+    ( case primitives.normals of
+        Just normals ->
+            Faces <|
+                triangularMesh <|
+                    List.map2
+                        (\position normal ->
+                            { position = Point3d.transformBy transformation position
+                            , normal = Vector3d.transformBy transformation normal
+                            }
                         )
-                        indices
-                    , color
-                    )
-                )
-            )
+                        primitives.positions
+                        normals
+
+        Nothing ->
+            Triangles <|
+                triangularMesh <|
+                    List.map (Point3d.transformBy transformation) primitives.positions
+    , primitives.color
+    )
+
+
+toMeshes : Raw.Gltf -> Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( Mesh coordinates, Maybe Color ))
+toMeshes gltf buffers ( mesh, transformation ) =
+    List.indexedMap (getPrimitiveAttributes gltf buffers mesh) mesh.primitives
+        |> List.map (Result.map (toMesh transformation))
         |> Result.Extra.combine
 
 
@@ -277,8 +290,8 @@ skipBytes skip decoder =
     Bytes.Decode.bytes skip |> Bytes.Decode.andThen (\_ -> decoder)
 
 
-texturedFacesFromDefaultScene : Bytes -> Result String (List ( TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) }, Maybe Color ))
-texturedFacesFromDefaultScene bytes =
+meshesFromDefaultScene : Bytes -> Result String (List ( Mesh coordinates, Maybe Color ))
+meshesFromDefaultScene bytes =
     let
         decoder =
             Bytes.Decode.string 4
@@ -338,7 +351,7 @@ texturedFacesFromDefaultScene bytes =
             Err "The file is malformed"
 
 
-assembleDefaultScene : Raw.Gltf -> Bytes -> Result String (List ( TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) }, Maybe Color ))
+assembleDefaultScene : Raw.Gltf -> Bytes -> Result String (List ( Mesh coordinates, Maybe Color ))
 assembleDefaultScene gltf valuesBytes =
     case gltf.scene of
         Just sceneIndex ->
@@ -348,7 +361,7 @@ assembleDefaultScene gltf valuesBytes =
                         |> Array.toList
                         |> List.map (getNode gltf)
                         |> List.map (Result.andThen (getMeshes gltf))
-                        |> List.map (Result.andThen (\meshes -> meshes |> List.map (toTriangularMesh gltf valuesBytes) |> Result.Extra.combine))
+                        |> List.map (Result.andThen (\meshes -> meshes |> List.map (toMeshes gltf valuesBytes) |> Result.Extra.combine))
                         |> List.map (Result.map List.concat)
                         |> Result.Extra.combine
                         |> Result.map List.concat
