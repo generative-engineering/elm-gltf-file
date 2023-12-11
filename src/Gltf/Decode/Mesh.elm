@@ -135,7 +135,7 @@ loop increment decoder count =
                     |> Bytes.Decode.map (\vector -> Bytes.Decode.Loop ( done + increment, vector :: vertices ))
 
             else
-                Bytes.Decode.Done vertices
+                Bytes.Decode.Done (List.reverse vertices)
                     |> Bytes.Decode.succeed
         )
 
@@ -276,8 +276,8 @@ toTriangularMesh gltf bytes ( mesh, modifier ) =
                                 , uv = ( 0, 0 )
                                 }
                             )
-                            (positions |> List.reverse)
-                            (normals |> List.reverse)
+                            positions
+                            normals
                             |> Array.fromList
                         )
                         indices
