@@ -4,6 +4,8 @@ import Array
 import Bytes exposing (Bytes)
 import Bytes.Decode
 import Color exposing (Color)
+import Geometry.Interop.LinearAlgebra.Point3d as Point3d
+import Geometry.Interop.LinearAlgebra.Vector3d as Vector3d
 import Gltf.Decode.Json.Raw as Raw
 import Json.Decode
 import Length exposing (Meters)
@@ -269,20 +271,8 @@ toTriangularMesh gltf bytes ( mesh, modifier ) =
                     ( TriangularMesh.indexed
                         (List.map2
                             (\position normal ->
-                                { position =
-                                    position
-                                        |> Point3d.unwrap
-                                        |> Math.Vector3.fromRecord
-                                        |> Math.Matrix4.transform modifier
-                                        |> Math.Vector3.toRecord
-                                        |> Point3d.unsafe
-                                , normal =
-                                    normal
-                                        |> Vector3d.unwrap
-                                        |> Math.Vector3.fromRecord
-                                        |> Math.Matrix4.transform modifier
-                                        |> Math.Vector3.toRecord
-                                        |> Vector3d.unsafe
+                                { position = Point3d.transformBy modifier position
+                                , normal = Vector3d.transformBy modifier normal
                                 , uv = ( 0, 0 )
                                 }
                             )
