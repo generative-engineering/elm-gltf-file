@@ -13,6 +13,7 @@ import Math.Matrix4 exposing (Mat4)
 import Math.Vector3
 import Point3d exposing (Point3d)
 import Quantity exposing (Unitless)
+import Result.Extra
 import TriangularMesh exposing (TriangularMesh)
 import Vector3d exposing (Vector3d)
 
@@ -22,23 +23,6 @@ type alias Vertex coordinates =
     , normal : Vector3d Unitless coordinates
     , uv : ( Float, Float )
     }
-
-
-resultFromList : List (Result error a) -> Result error (List a)
-resultFromList =
-    List.foldl
-        (\result listResult ->
-            case ( result, listResult ) of
-                ( Err error, _ ) ->
-                    Err error
-
-                ( _, Err error ) ->
-                    Err error
-
-                ( Ok element, Ok list ) ->
-                    Ok <| element :: list
-        )
-        (Ok [])
 
 
 getNode : Raw.Gltf -> Int -> Result String Raw.Node
@@ -68,7 +52,7 @@ getMeshes gltf node =
                 |> List.map (getNode gltf)
                 |> List.map (Result.andThen <| getMeshes gltf)
                 |> List.map (Result.map (List.map <| \( childMesh, childMatrix ) -> ( childMesh, Math.Matrix4.mul node.matrix childMatrix )))
-                |> resultFromList
+                |> Result.Extra.combine
                 |> Result.map List.concat
     in
     Result.map2 (++) nodeMesh childMeshes
@@ -285,7 +269,7 @@ toTriangularMesh gltf bytes ( mesh, modifier ) =
                     )
                 )
             )
-        |> resultFromList
+        |> Result.Extra.combine
 
 
 skipBytes : Int -> Bytes.Decode.Decoder a -> Bytes.Decode.Decoder a
@@ -364,9 +348,9 @@ assembleDefaultScene gltf valuesBytes =
                         |> Array.toList
                         |> List.map (getNode gltf)
                         |> List.map (Result.andThen (getMeshes gltf))
-                        |> List.map (Result.andThen (\meshes -> meshes |> List.map (toTriangularMesh gltf valuesBytes) |> resultFromList))
+                        |> List.map (Result.andThen (\meshes -> meshes |> List.map (toTriangularMesh gltf valuesBytes) |> Result.Extra.combine))
                         |> List.map (Result.map List.concat)
-                        |> resultFromList
+                        |> Result.Extra.combine
                         |> Result.map List.concat
 
                 Nothing ->
