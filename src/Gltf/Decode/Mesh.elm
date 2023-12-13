@@ -1,6 +1,7 @@
-module Gltf.Decode.Mesh exposing (Mesh(..), assembleDefaultScene, meshesFromDefaultScene)
+module Gltf.Decode.Mesh exposing (BaseColor(..), Material, Mesh(..), assembleDefaultScene, meshesFromDefaultScene)
 
 import Array exposing (Array)
+import Base64
 import Bytes exposing (Bytes)
 import Bytes.Decode
 import Color exposing (Color)
@@ -16,6 +17,7 @@ import Quantity exposing (Unitless)
 import Result.Extra
 import TriangularMesh exposing (TriangularMesh)
 import Vector3d exposing (Vector3d)
+import WebGL.Texture
 
 
 type alias Vertex coordinates =
@@ -112,20 +114,42 @@ mapAccessor decoderConstructor gltf buffers accessorIndex =
             Err <| "There is no accessor at index " ++ String.fromInt accessorIndex ++ ", as the accessor array is only " ++ (String.fromInt <| Array.length gltf.accessors) ++ " items long"
 
 
-loop : Int -> Bytes.Decode.Decoder a -> Int -> Bytes.Decode.Decoder (List ( a, a, a ))
-loop increment decoder count =
+loop : ( Bytes.Decode.Decoder a, Int ) -> Int -> Bytes.Decode.Decoder (List a)
+loop ( decoder, increment ) count =
     Bytes.Decode.loop ( 0, [] )
-        (\( done, vertices ) ->
+        (\( done, accumulated ) ->
             if done < count then
-                Bytes.Decode.map3 (\x y z -> ( x, y, z ))
-                    decoder
-                    decoder
-                    decoder
-                    |> Bytes.Decode.map (\vector -> Bytes.Decode.Loop ( done + increment, vector :: vertices ))
+                decoder
+                    |> Bytes.Decode.map (\value -> Bytes.Decode.Loop ( done + increment, value :: accumulated ))
 
             else
-                Bytes.Decode.Done (List.reverse vertices)
+                Bytes.Decode.Done (List.reverse accumulated)
                     |> Bytes.Decode.succeed
+        )
+
+
+getFloatVec2 : Raw.Gltf -> Array Bytes -> Int -> Result String (List ( Float, Float ))
+getFloatVec2 =
+    mapAccessor
+        (\accessor ->
+            let
+                decoderResult =
+                    case accessor.componentType of
+                        Raw.Float ->
+                            Ok <| Bytes.Decode.float32 Bytes.LE
+
+                        _ ->
+                            Err <| "Accessor" ++ (accessor.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ " was expected to point to a float"
+            in
+            decoderResult
+                |> Result.map
+                    (\floatDecoder ->
+                        let
+                            uvDecoder =
+                                Bytes.Decode.map2 Tuple.pair floatDecoder floatDecoder
+                        in
+                        loop ( uvDecoder, 1 ) accessor.count
+                    )
         )
 
 
@@ -144,14 +168,21 @@ getFloatVec3 =
             in
             decoderResult
                 |> Result.map
-                    (\decoder ->
-                        loop 1 decoder accessor.count
+                    (\floatDecoder ->
+                        let
+                            vecDecoder =
+                                Bytes.Decode.map3 (\x y z -> ( x, y, z ))
+                                    floatDecoder
+                                    floatDecoder
+                                    floatDecoder
+                        in
+                        loop ( vecDecoder, 1 ) accessor.count
                     )
         )
 
 
-getIntVec3 : Raw.Gltf -> Array Bytes -> Int -> Result String (List ( Int, Int, Int ))
-getIntVec3 =
+getIntTriples : Raw.Gltf -> Array Bytes -> Int -> Result String (List ( Int, Int, Int ))
+getIntTriples =
     mapAccessor
         (\accessor ->
             let
@@ -168,21 +199,28 @@ getIntVec3 =
             in
             decoderResult
                 |> Result.map
-                    (\decoder ->
-                        loop 3 decoder accessor.count
+                    (\intDecoder ->
+                        let
+                            tripleDecoder =
+                                Bytes.Decode.map3 (\i j k -> ( i, j, k ))
+                                    intDecoder
+                                    intDecoder
+                                    intDecoder
+                        in
+                        loop ( tripleDecoder, 3 ) accessor.count
                     )
         )
 
 
-getPositions : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (List (Point3d Meters coordinates))
-getPositions gltf buffers primitive =
+getPositions : Raw.Gltf -> Array Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (List (Point3d Meters coordinates))
+getPositions gltf buffers mesh primitiveIndex primitive =
     case primitive.attributes.position of
         Just positionIndex ->
             getFloatVec3 gltf buffers positionIndex
                 |> Result.map (List.map (\( x, y, z ) -> Point3d.meters x y z))
 
         Nothing ->
-            Err <| "No positions were found on this primitive"
+            Err ("The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no positions")
 
 
 getNormals : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (Maybe (List (Vector3d Unitless coordinates)))
@@ -196,25 +234,42 @@ getNormals gltf buffers primitive =
             Ok Nothing
 
 
-getIndices : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (List ( Int, Int, Int ))
-getIndices gltf buffers primitive =
-    case primitive.indices of
-        Just indicesIndex ->
-            getIntVec3 gltf buffers indicesIndex
+getUvs : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String (Maybe (List ( Float, Float )))
+getUvs gltf buffers primitive =
+    case primitive.attributes.texCoords of
+        Just texCoordsIndex ->
+            Result.map Just (getFloatVec2 gltf buffers texCoordsIndex)
 
         Nothing ->
-            Err <| "No indices were found on this primitive"
+            Ok Nothing
 
 
-getColor : Raw.Gltf -> Raw.MeshPrimitive -> Result String (Maybe Color)
-getColor gltf primitive =
+getIndices : Raw.Gltf -> Array Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (List ( Int, Int, Int ))
+getIndices gltf buffers mesh primitiveIndex primitive =
+    case primitive.indices of
+        Just indicesIndex ->
+            getIntTriples gltf buffers indicesIndex
+
+        Nothing ->
+            Err ("The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no indices")
+
+
+getMaterial : Raw.Gltf -> Array Bytes -> Raw.MeshPrimitive -> Result String Material
+getMaterial gltf buffers primitive =
     case primitive.material of
         Just materialIndex ->
             case Array.get materialIndex gltf.materials of
                 Just material ->
                     case material.pbrMetallicRoughness of
                         Just pbr ->
-                            Ok <| Just (Color.fromRgba pbr.baseColorFactor)
+                            getPbrBaseColor gltf buffers pbr
+                                |> Result.map
+                                    (\baseColor ->
+                                        { baseColor = baseColor
+                                        , metallic = pbr.metallicFactor
+                                        , roughness = pbr.roughnessFactor
+                                        }
+                                    )
 
                         Nothing ->
                             Err <| "no PBR metallic roughness was found on material" ++ (material.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ " at index " ++ String.fromInt materialIndex
@@ -223,47 +278,236 @@ getColor gltf primitive =
                     Err <| "No material was found at index " ++ String.fromInt materialIndex ++ " (There are only " ++ String.fromInt (Array.length gltf.materials) ++ " materials)"
 
         Nothing ->
-            Ok Nothing
+            Ok
+                { baseColor = ConstantColor Color.white
+                , metallic = 1.0
+                , roughness = 1.0
+                }
+
+
+getPbrBaseColor : Raw.Gltf -> Array Bytes -> Raw.MaterialPbrMetallicRoughness -> Result String BaseColor
+getPbrBaseColor gltf buffers pbr =
+    case pbr.baseColorTexture of
+        Just { index, texCoord } ->
+            if texCoord == 0 then
+                case Array.get index gltf.textures of
+                    Just { sampler, source } ->
+                        Result.map2
+                            (\url options -> ColorTexture { url = url, options = options })
+                            (getTextureSourceUrl gltf buffers source)
+                            (getTextureOptions gltf sampler)
+
+                    Nothing ->
+                        Err <| "No texture found at index " ++ String.fromInt index
+
+            else
+                Err "Only texture coordinate 0 is currently supported"
+
+        Nothing ->
+            Ok (ConstantColor (Color.fromRgba pbr.baseColorFactor))
+
+
+getTextureSourceUrl : Raw.Gltf -> Array Bytes -> Maybe Int -> Result String String
+getTextureSourceUrl gltf buffers maybeImageIndex =
+    case maybeImageIndex of
+        Just imageIndex ->
+            case Array.get imageIndex gltf.images of
+                Just image ->
+                    case image.uri of
+                        Just url ->
+                            -- Image has a URL, just return it
+                            Ok url
+
+                        Nothing ->
+                            -- Image references part of a buffer,
+                            -- form a data URL for it
+                            case ( image.mimeType, image.bufferView ) of
+                                ( Just mimeType, Just bufferView ) ->
+                                    getImageDataUrl gltf buffers mimeType bufferView
+
+                                ( _, Nothing ) ->
+                                    Err "No buffer view supplied for texture"
+
+                                ( Nothing, Just _ ) ->
+                                    Err "No MIME type supplied for texture"
+
+                Nothing ->
+                    Err <| "No texture image found at index " ++ String.fromInt imageIndex
+
+        Nothing ->
+            Err "No source image defined for texture"
+
+
+getImageDataUrl : Raw.Gltf -> Array Bytes -> Raw.ImageMimeType -> Int -> Result String String
+getImageDataUrl gltf buffers mimeType bufferViewIndex =
+    case Array.get bufferViewIndex gltf.bufferViews of
+        Just bufferView ->
+            case Array.get bufferView.buffer buffers of
+                Just buffer ->
+                    getBufferSlice bufferView.byteOffset bufferView.byteLength buffer
+                        |> Result.andThen
+                            (\slice ->
+                                let
+                                    mimeTypeString =
+                                        case mimeType of
+                                            Raw.ImagePng ->
+                                                "image/png"
+
+                                            Raw.ImageJpeg ->
+                                                "image/jpeg"
+
+                                    dataString =
+                                        Base64.fromBytes slice |> Maybe.withDefault ""
+                                in
+                                Ok <| "data:" ++ mimeTypeString ++ ";base64," ++ dataString
+                            )
+
+                Nothing ->
+                    Err <| "No buffer found at index " ++ String.fromInt bufferView.buffer
+
+        Nothing ->
+            Err <| "No buffer view found at index " ++ String.fromInt bufferViewIndex
+
+
+getBufferSlice : Int -> Int -> Bytes -> Result String Bytes
+getBufferSlice offset length buffer =
+    let
+        decoder =
+            Bytes.Decode.bytes offset |> Bytes.Decode.andThen (\_ -> Bytes.Decode.bytes length)
+    in
+    case Bytes.Decode.decode decoder buffer of
+        Just slice ->
+            Ok slice
+
+        Nothing ->
+            Err "Buffer view is out of range"
+
+
+getTextureOptions : Raw.Gltf -> Maybe Int -> Result String WebGL.Texture.Options
+getTextureOptions gltf maybeSamplerIndex =
+    let
+        defaultOptions =
+            WebGL.Texture.defaultOptions
+    in
+    case maybeSamplerIndex of
+        Just samplerIndex ->
+            case Array.get samplerIndex gltf.samplers of
+                Just sampler ->
+                    let
+                        magnify =
+                            case sampler.magFilter of
+                                Nothing ->
+                                    defaultOptions.magnify
+
+                                Just Raw.MagNearest ->
+                                    WebGL.Texture.nearest
+
+                                Just Raw.MagLinear ->
+                                    WebGL.Texture.linear
+
+                        minify =
+                            case sampler.minFilter of
+                                Nothing ->
+                                    defaultOptions.minify
+
+                                Just Raw.MinNearest ->
+                                    WebGL.Texture.nearest
+
+                                Just Raw.MinLinear ->
+                                    WebGL.Texture.linear
+
+                                Just Raw.NearestMipmapNearest ->
+                                    WebGL.Texture.nearestMipmapNearest
+
+                                Just Raw.LinearMipmapNearest ->
+                                    WebGL.Texture.linearMipmapNearest
+
+                                Just Raw.NearestMipmapLinear ->
+                                    WebGL.Texture.nearestMipmapLinear
+
+                                Just Raw.LinearMipmapLinear ->
+                                    WebGL.Texture.linearMipmapLinear
+
+                        wrapOption sampleWrap =
+                            case sampleWrap of
+                                Raw.ClampToEdge ->
+                                    WebGL.Texture.clampToEdge
+
+                                Raw.MirroredRepeat ->
+                                    WebGL.Texture.mirroredRepeat
+
+                                Raw.Repeat ->
+                                    WebGL.Texture.repeat
+                    in
+                    Ok
+                        { magnify = magnify
+                        , minify = minify
+                        , horizontalWrap = wrapOption sampler.wrapS
+                        , verticalWrap = wrapOption sampler.wrapT
+                        , flipY = False
+                        }
+
+                Nothing ->
+                    Err <| "No sampler found at index " ++ String.fromInt samplerIndex
+
+        Nothing ->
+            Ok defaultOptions
 
 
 type alias Primitives coordinates =
     { positions : List (Point3d Meters coordinates)
     , normals : Maybe (List (Vector3d Unitless coordinates))
+    , uvs : Maybe (List ( Float, Float ))
     , indices : List ( Int, Int, Int )
-    , color : Maybe Color
+    , material : Material
     }
 
 
 getPrimitiveAttributes : Raw.Gltf -> Array Bytes -> Raw.Mesh -> Int -> Raw.MeshPrimitive -> Result String (Primitives coordinates)
 getPrimitiveAttributes gltf buffers mesh primitiveIndex primitive =
-    Result.map4 Primitives
-        (getPositions gltf buffers primitive
-            |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no positions")
-        )
-        (getNormals gltf buffers primitive
-            |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no normals")
-        )
-        (getIndices gltf buffers primitive
-            |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no indices")
-        )
-        (getColor gltf primitive
-            |> Result.mapError (\_ -> "The mesh" ++ (mesh.name |> Maybe.map (\name -> " " ++ name) |> Maybe.withDefault "") ++ "'s primitive (" ++ String.fromInt primitiveIndex ++ ") has no color specified in its material")
-        )
+    Result.map5 Primitives
+        (getPositions gltf buffers mesh primitiveIndex primitive)
+        (getNormals gltf buffers primitive)
+        (getUvs gltf buffers primitive)
+        (getIndices gltf buffers mesh primitiveIndex primitive)
+        (getMaterial gltf buffers primitive)
 
 
 type Mesh coordinates
     = Triangles (TriangularMesh (Point3d Meters coordinates))
     | Faces (TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates })
+    | TexturedTriangles (TriangularMesh { position : Point3d Meters coordinates, uv : ( Float, Float ) })
+    | TexturedFaces (TriangularMesh { position : Point3d Meters coordinates, normal : Vector3d Unitless coordinates, uv : ( Float, Float ) })
 
 
-toMesh : Mat4 -> Primitives coordinates -> ( Mesh coordinates, Maybe Color )
+type BaseColor
+    = ConstantColor Color
+    | ColorTexture
+        { url : String
+        , options : WebGL.Texture.Options
+        }
+
+
+type alias Material =
+    { baseColor : BaseColor
+    , metallic : Float
+    , roughness : Float
+    }
+
+
+toMesh : Mat4 -> Primitives coordinates -> ( Mesh coordinates, Material )
 toMesh transformation primitives =
     let
         triangularMesh vertexList =
             TriangularMesh.indexed (Array.fromList vertexList) primitives.indices
     in
-    ( case primitives.normals of
-        Just normals ->
+    ( case ( primitives.normals, primitives.uvs ) of
+        ( Nothing, Nothing ) ->
+            Triangles <|
+                triangularMesh <|
+                    List.map (Point3d.transformBy transformation) primitives.positions
+
+        ( Just normals, Nothing ) ->
             Faces <|
                 triangularMesh <|
                     List.map2
@@ -275,15 +519,36 @@ toMesh transformation primitives =
                         primitives.positions
                         normals
 
-        Nothing ->
-            Triangles <|
+        ( Nothing, Just uvs ) ->
+            TexturedTriangles <|
                 triangularMesh <|
-                    List.map (Point3d.transformBy transformation) primitives.positions
-    , primitives.color
+                    List.map2
+                        (\position uv ->
+                            { position = Point3d.transformBy transformation position
+                            , uv = uv
+                            }
+                        )
+                        primitives.positions
+                        uvs
+
+        ( Just normals, Just uvs ) ->
+            TexturedFaces <|
+                triangularMesh <|
+                    List.map3
+                        (\position normal uv ->
+                            { position = Point3d.transformBy transformation position
+                            , normal = Vector3d.transformBy transformation normal
+                            , uv = uv
+                            }
+                        )
+                        primitives.positions
+                        normals
+                        uvs
+    , primitives.material
     )
 
 
-toMeshes : Raw.Gltf -> Array Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( Mesh coordinates, Maybe Color ))
+toMeshes : Raw.Gltf -> Array Bytes -> ( Raw.Mesh, Mat4 ) -> Result String (List ( Mesh coordinates, Material ))
 toMeshes gltf buffers ( mesh, transformation ) =
     List.indexedMap (getPrimitiveAttributes gltf buffers mesh) mesh.primitives
         |> List.map (Result.map (toMesh transformation))
@@ -295,7 +560,7 @@ skipBytes skip decoder =
     Bytes.Decode.bytes skip |> Bytes.Decode.andThen (\_ -> decoder)
 
 
-meshesFromDefaultScene : Bytes -> Result String (List ( Mesh coordinates, Maybe Color ))
+meshesFromDefaultScene : Bytes -> Result String (List ( Mesh coordinates, Material ))
 meshesFromDefaultScene bytes =
     let
         decoder =
@@ -356,7 +621,7 @@ meshesFromDefaultScene bytes =
             Err "The file is malformed"
 
 
-assembleDefaultScene : Raw.Gltf -> Array Bytes -> Result String (List ( Mesh coordinates, Maybe Color ))
+assembleDefaultScene : Raw.Gltf -> Array Bytes -> Result String (List ( Mesh coordinates, Material ))
 assembleDefaultScene gltf buffers =
     case gltf.scene of
         Just sceneIndex ->
