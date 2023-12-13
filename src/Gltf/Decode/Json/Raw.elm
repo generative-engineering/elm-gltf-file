@@ -448,7 +448,7 @@ materialNormalTextureInfoDecoder : Json.Decode.Decoder MaterialNormalTextureInfo
 materialNormalTextureInfoDecoder =
     Json.Decode.succeed MaterialNormalTextureInfo
         |> Json.Decode.Pipeline.required "index" Json.Decode.int
-        |> Json.Decode.Pipeline.optional "textCoord" Json.Decode.int 0
+        |> Json.Decode.Pipeline.optional "texCoord" Json.Decode.int 0
         |> Json.Decode.Pipeline.optional "scale" Json.Decode.float 1
         |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
         |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
@@ -458,7 +458,7 @@ materialOcclusionTextureInfoDecoder : Json.Decode.Decoder MaterialOcclusionTextu
 materialOcclusionTextureInfoDecoder =
     Json.Decode.succeed MaterialOcclusionTextureInfo
         |> Json.Decode.Pipeline.required "index" Json.Decode.int
-        |> Json.Decode.Pipeline.optional "textCoord" Json.Decode.int 0
+        |> Json.Decode.Pipeline.optional "texCoord" Json.Decode.int 0
         |> Json.Decode.Pipeline.optional "strength" Json.Decode.float 1
         |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
         |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
@@ -468,7 +468,7 @@ textureInfoDecoder : Json.Decode.Decoder TextureInfo
 textureInfoDecoder =
     Json.Decode.succeed TextureInfo
         |> Json.Decode.Pipeline.required "index" Json.Decode.int
-        |> Json.Decode.Pipeline.optional "textCoord" Json.Decode.int 0
+        |> Json.Decode.Pipeline.optional "texCoord" Json.Decode.int 0
         |> Json.Decode.Pipeline.optional "extensions" (Json.Decode.nullable extensionsDecoder) Nothing
         |> Json.Decode.Pipeline.optional "extras" (Json.Decode.nullable extrasDecoder) Nothing
 
@@ -523,7 +523,7 @@ meshPrimitiveAttributeDecoder =
         |> Json.Decode.Pipeline.optional "NORMAL" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "POSITION" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "TANGENT" (Json.Decode.nullable Json.Decode.int) Nothing
-        |> Json.Decode.Pipeline.optional "TEXTCOORD_0" (Json.Decode.nullable Json.Decode.int) Nothing
+        |> Json.Decode.Pipeline.optional "TEXCOORD_0" (Json.Decode.nullable Json.Decode.int) Nothing
         |> Json.Decode.Pipeline.optional "WEIGHTS_0" (Json.Decode.nullable Json.Decode.int) Nothing
 
 
@@ -1093,7 +1093,7 @@ type alias MeshPrimitiveAttributes =
     , normal : Maybe Int
     , position : Maybe Int
     , tangent : Maybe Int
-    , textCoordinates : Maybe Int
+    , texCoords : Maybe Int
     , weights : Maybe Int
     }
 
