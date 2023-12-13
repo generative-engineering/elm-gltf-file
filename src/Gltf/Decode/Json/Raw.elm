@@ -561,6 +561,11 @@ meshPrimitiveModeDecoder =
 
 rotationMatrixFromUnitQuaternion : Float -> Float -> Float -> Float -> Mat4
 rotationMatrixFromUnitQuaternion x y z w =
+    -- See https://www.songho.ca/opengl/gl_quaternion.html
+    -- (and note that the glTF specification states that
+    -- the quaternion given is in fact a *unit* quaternion
+    -- so we don't need to worry about normalisation:
+    -- https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-node)
     Math.Matrix4.fromRecord
         { m11 = 1 - 2 * y * y - 2 * z * z
         , m12 = 2 * x * y - 2 * w * z
