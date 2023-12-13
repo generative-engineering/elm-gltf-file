@@ -559,6 +559,28 @@ meshPrimitiveModeDecoder =
             )
 
 
+rotationMatrixFromUnitQuaternion : Float -> Float -> Float -> Float -> Mat4
+rotationMatrixFromUnitQuaternion x y z w =
+    Math.Matrix4.fromRecord
+        { m11 = 1 - 2 * y * y - 2 * z * z
+        , m12 = 2 * x * y - 2 * w * z
+        , m13 = 2 * x * z + 2 * w * y
+        , m14 = 0
+        , m21 = 2 * x * y + 2 * w * z
+        , m22 = 1 - 2 * x * x - 2 * z * z
+        , m23 = 2 * y * z - 2 * w * x
+        , m24 = 0
+        , m31 = 2 * x * z - 2 * w * y
+        , m32 = 2 * y * z + 2 * w * x
+        , m33 = 1 - 2 * x * x - 2 * y * y
+        , m34 = 0
+        , m41 = 0
+        , m42 = 0
+        , m43 = 0
+        , m44 = 1
+        }
+
+
 nodeDecoder : Json.Decode.Decoder Node
 nodeDecoder =
     let
@@ -577,15 +599,13 @@ nodeDecoder =
         rotation : Mat4 -> Json.Decode.Decoder Mat4
         rotation matrix =
             Json.Decode.oneOf
-                [ Json.Decode.map2 Math.Matrix4.rotate
+                [ Json.Decode.map4 rotationMatrixFromUnitQuaternion
                     (Json.Decode.index 0 Json.Decode.float)
-                    (Json.Decode.map3 Math.Vector3.vec3
-                        (Json.Decode.index 1 Json.Decode.float)
-                        (Json.Decode.index 2 Json.Decode.float)
-                        (Json.Decode.index 3 Json.Decode.float)
-                    )
+                    (Json.Decode.index 1 Json.Decode.float)
+                    (Json.Decode.index 2 Json.Decode.float)
+                    (Json.Decode.index 3 Json.Decode.float)
                     |> Json.Decode.field "rotation"
-                    |> Json.Decode.map (\rotateFunction -> rotateFunction matrix)
+                    |> Json.Decode.map (\rotationMatrix -> Math.Matrix4.mul rotationMatrix matrix)
                 , Json.Decode.succeed matrix
                 ]
 
