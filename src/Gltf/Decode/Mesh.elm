@@ -345,28 +345,32 @@ getImageDataUrl gltf buffers mimeType bufferViewIndex =
             case Array.get bufferView.buffer buffers of
                 Just buffer ->
                     getBufferSlice bufferView.byteOffset bufferView.byteLength buffer
-                        |> Result.andThen
-                            (\slice ->
-                                let
-                                    mimeTypeString =
-                                        case mimeType of
-                                            Raw.ImagePng ->
-                                                "image/png"
-
-                                            Raw.ImageJpeg ->
-                                                "image/jpeg"
-
-                                    dataString =
-                                        Base64.fromBytes slice |> Maybe.withDefault ""
-                                in
-                                Ok <| "data:" ++ mimeTypeString ++ ";base64," ++ dataString
-                            )
+                        |> Result.map (dataUrlFromBytes (imageMimeTypeToString mimeType))
 
                 Nothing ->
                     Err <| "No buffer found at index " ++ String.fromInt bufferView.buffer
 
         Nothing ->
             Err <| "No buffer view found at index " ++ String.fromInt bufferViewIndex
+
+
+imageMimeTypeToString : Raw.ImageMimeType -> String
+imageMimeTypeToString mimeType =
+    case mimeType of
+        Raw.ImagePng ->
+            "image/png"
+
+        Raw.ImageJpeg ->
+            "image/jpeg"
+
+
+dataUrlFromBytes : String -> Bytes -> String
+dataUrlFromBytes mimeType data =
+    let
+        base64Data =
+            Base64.fromBytes data |> Maybe.withDefault ""
+    in
+    "data:" ++ mimeType ++ ";base64," ++ base64Data
 
 
 getBufferSlice : Int -> Int -> Bytes -> Result String Bytes
